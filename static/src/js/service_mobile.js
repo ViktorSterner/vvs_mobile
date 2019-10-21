@@ -10,7 +10,7 @@ odoo.define('service_mobile.index', function (require) {
 
     console.log("working");
 
-    //~ Kontrollera att klass finns på sidan (inte ladda i onödan)
+    //~ Kontrollera att klass finns på sidan (inte ladda i onödan), this is a test comment
     if (!$('.service_mobile').length) { 
         return $.Deferred().reject("DOM doesn't contain '.service_mobile'");
     }
