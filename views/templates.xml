@@ -1,0 +1,274 @@
+<odoo>
+    <data>
+
+        <template id="assets_frontend" inherit_id="web.assets_frontend">
+            <xpath expr="." position="inside">
+            <!-- <link rel="stylesheet" href="/service_mobile/static/src/css/site.css" /> -->
+            <script type="text/javascript" src="/service_mobile/static/src/js/service_mobile.js" />
+            </xpath>
+        </template>
+
+        <template id="index">
+            <t t-call="website.layout">
+                <div class="service_mobile container">
+                    <div class="row">
+                        <table class="table table-striped">
+                            <thead>
+                                <a t-att-href="'/service/order/create'" class="btn btn-primary btn-xs pull-right"><b>+</b> Create new order</a>
+                                <tr>
+                                    <th>Order name</th>
+                                    <th>Status</th>
+                                    <th>Prio</th>
+                                    <th>Invoice status</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tr t-foreach="order_ids" t-as="order">
+                                <td><a t-att-href="'/service/%s/order' % order.id">
+                                        <t t-esc="order.display_name" />
+                                    </a>
+                                </td>
+                                <td>
+                                    <t t-esc="order.state" />
+                                </td>
+                                <td>
+                                    <div t-att-id="'prio_status_%s' % order.id">
+                                        <t t-esc="'Prio' if order.prio else 'Normal'" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <t t-esc="order.invoice_status"/>
+                                </td>
+                                <td class="text-center">
+                                    <div class="row">
+                                        <div class="col px-2">
+                                            <a t-att-href="'/service/%s/order/send' % order.id" class='btn btn-info btn-xs'>Send</a>
+                                        </div>
+                                        <div class="col px-2">
+                                            <a t-att-href="'/service/%s/order/delete' % order.id" class="btn btn-danger btn-xs">Del</a>
+                                        </div>
+                                        <div class="col px-2">
+                                            <a t-att-href="'/service/%s/order/task' % order.id" class="btn btn-success btn-xs">Time(Tasks)</a>
+                                        </div>
+                                        <div class="col px-2">
+                                            <a style="cursor: pointer;" t-attf-class="prio_toggle" t-attf-data-href="/service/#{slug(order)}/order/flag">
+                                                Toggle prio
+                                            </a>
+                                            <a t-attf-style="cursor: pointer;#{order.state == 'sent' and 'color:#999;' or ''}" t-attf-class="flag fa fa-flag #{not order.state == 'sent' or ''}" t-attf-data-href="/service/#{slug(order)}/order/flag">
+                                                <t t-if="order.state == 'sent'">
+                                                    Flagged
+                                                </t>
+                                                <t t-if="order.state != 'sent'">
+                                                    Flag
+                                                </t>
+                                            </a>
+                                        </div>
+                                        <div class="col">
+                                            <a style="cursor: pointer;" t-attf-class="send_invoice" t-attf-data-href="/service/#{slug(order)}/order/invoice">
+                                                Send invoice
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </template>
+        <template id="view_order">
+            <t t-call="website.layout">
+                <form id="info_form" t-att-action="'/service/%s/order' % order.id" method="post"
+                    class="form-horizontal mt32" enctype="multipart/form-data">
+                    <input type="hidden" name="id" t-att-value="order.id" />
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                    <div class="form-group">
+                        <label class="col-md-3 col-sm-4 control-label" for="order_name">Order name</label>
+                        <div class="col-md-7 col-sm-8">
+                            <p class="form-control-static" name="order_name">
+                                <t t-esc="order.name" />
+                            </p>
+                        </div>
+                        <label class="col-md-3 col-sm-4 control-label" for="customer_name">Customer</label>
+                        <div class="col-md-7 col-sm-8">
+                            <p class="form-control-static" name="customer_name">
+                                <t t-esc="order.partner_id.name" />
+                                <t t-esc="order.name" />
+                            </p>
+                        </div>
+                        <label class="col-md-3 col-sm-4 control-label" for="tasks">Tasks</label>
+                        <t t-foreach="task_ids" t-as="task">
+                            <div class="col-md-7 col-sm-8">
+                                <span name="tasks">
+                                    <h2>
+                                        <t t-esc="task.name" />
+                                    </h2>
+                                    <p>Ordered QTY:</p><t t-esc="task.product_uom_qty" />
+                                    <input type="range" min="0" max="40" step="1" class="form-control" t-att-name="'task_qty_%s' %task.id"
+                                        t-att-value="task.product_uom_qty" placeholder="Enter qty..." />
+                                    <div class="row">
+                                        <div class="col">
+                                            Delivered QTY:<t t-esc="task.qty_delivered" />
+                                        </div>
+                                        <div class="col">
+                                            All delivered?<input type="checkbox" class="form-control" t-att-name="'task_deliver_%s' %task.id"
+                                            t-att-checked="True if task.qty_delivered == task.product_uom_qty else False"/>
+                                        </div>
+                                    </div>
+
+                                </span>
+                            </div>
+                        </t>
+                    </div>
+                    <div t-att-class="'form-group %s' %validation.get('note', '')">
+                        <label class="col-md-3 col-sm-4 control-label" for="note">Note</label>
+                        <div class="col-md-7 col-sm-8">
+                            <input type="text" class="form-control" name="note" t-att-value="order.note"
+                                placeholder="Notes..." />
+                            <small t-esc="help.get('note', '')" />
+                        </div>
+                        <div class="col-md-7 col-sm-8">
+                            <p>Prio:</p><input type="checkbox" class="form-control" name="prio" t-att-checked="order.prio" />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="pull-right mb16">
+                            <div class="">
+                                <button id="submit_btn" class="btn btn-primary btn-lg">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </t>
+        </template>
+        <template id="create_order">
+            <t t-call="website.layout">
+                <!-- Bootstrap dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Dropdown button
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <t t-foreach="partner_ids" t-as="partner">
+                            <a class="dropdown-item" href="#">
+                                <t t-esc="partner.name" /></a>
+                        </t>
+                    </div>
+                </div>
+                <!-- Bootstrap dropdown -->
+                <form id="create_order_form" action="/service/order/create" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                    <div class="">
+                        <button id="submit_btn" class="btn btn-primary btn-lg">Create</button>
+                    </div>
+                    <!-- Form dropdown -->
+                    <select name="partner_list">
+                        <t t-foreach="partner_ids" t-as="partner">
+                            <option t-att-value="partner.id">
+                                <t t-esc="partner.name" />
+                            </option>
+                        </t>
+                    </select>
+
+                    <select name="template_list">
+                        <t t-foreach="template_ids" t-as="template">
+                            <option t-att-value="template.id">
+                                <t t-esc="template.name" />
+                            </option>
+                        </t>
+                    </select>
+
+                </form>
+                <!-- Form dropdown -->
+            </t>
+        </template>
+
+        <template id="view_task">
+            <t t-call="website.layout">
+                <div class="container">                
+                    <t t-foreach="tasks" t-as="task">
+                        <div>
+                            <t t-esc="task.display_name"/>
+                            <p>Task id: <t t-esc="task.id"/></p>
+                            <p>Order id: <t t-esc="order.id"/></p>
+                            <div class="row col-md-6 col-md-offset-2 custyle">
+                                <table class="table table-striped custab">
+                                    <thead>
+                                        <tr>
+                                            <th>Description</th>
+                                            <th>Employee</th>
+                                            <th>Date</th>
+                                            <th>Time(h)</th>
+                                        </tr>
+                                    </thead>
+                                    <tr t-foreach="task.timesheet_ids" t-as="tsheet">
+                                        <td>
+                                            <t t-esc="tsheet.name"/>
+                                        </td>
+                                        <td>
+                                            <t t-esc="tsheet.employee_id"/>
+                                        </td>
+                                        <td>
+                                            <t t-esc="tsheet.date"/>
+                                        </td>
+                                        <td>
+                                            <t t-esc="tsheet.unit_amount"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <form id="time_report_form" t-att-action="'/service/%s/order/task' % order.id" method="post"
+                                class="form-horizontal mt32" enctype="multipart/form-data">
+                                <input type="hidden" name="id" t-att-value="order.id" />
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                <input type="hidden" name="task_id" t-att-value="task.id"/>
+                                <input type="hidden" name="user_id" t-att-value="order.user_id.employee_ids.id"/>
+                                <input type="hidden" name="account_id" t-att-value="order.tasks_ids[0].project_id.analytic_account_id.id"/>
+                                <input type="text" name="desc_id" placeholder="GLÖM INTE DESCRIPTION" />
+                                <input type="date" name="date_input"/>
+                                <input type="number" name="time_input"/>
+                                <button type="submit" name="sumbit_btn">SPARA FÖR FAN</button> 
+                            </form>
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </template>
+
+        <template id="index_project">
+            <t t-call="website.layout">
+                <table class="table">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Project name</th>
+                            <th>Number of tasks</th>
+                            <th>Invoice</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="project_ids" t-as="project">
+                            <td>
+                                <t t-esc="project.display_name" />
+                            </td>
+                            <td>
+                                <t t-esc="project.task_count" />
+                            </td>
+                            <td>
+                                <!-- <a t-att-href="'/service/%s/order/invoice' % project.id"><i class="fa fa-paper-plane"></i></a> -->
+                                <a t-att-href="'/service/all/project'"><i class="fa fa-paper-plane"></i></a>
+                            </td>
+                            <td>
+                                <a t-att-href="'/service/%s/order/delete' % project.id"><span class="fa fa-trash" /></a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </t>
+        </template>
+    </data>
+</odoo>
