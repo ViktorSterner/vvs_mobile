@@ -15,13 +15,6 @@ odoo.define('service_mobile.index', function (require) {
         return $.Deferred().reject("DOM doesn't contain '.service_mobile'");
     }
 
-    $('.prio_toggle').on('click', function (ev) {
-        ev.preventDefault();
-
-        console.log(ev);
-        console.log("clicked");
-    });
-
     $('.send_invoice').on('click', function (ev) {
         //~ If this method is called, the default action of the event will not be triggered.
         ev.preventDefault();

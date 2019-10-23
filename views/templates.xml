@@ -8,6 +8,19 @@
             </xpath>
         </template>
 
+        <template id="web_layout" inherit_id="web.layout">
+            <xpath expr="//head" position="inside">
+                <title>Kims Faktureringsmaskin</title>
+                <meta name="apple-mobile-web-app-capable" content="yes" />
+                <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+                <meta name="apple-mobile-web-app-title" content="Kims Faktureringsmaskin" />
+                <meta name="mobile-web-app-capable" content="yes" />
+                <link rel="apple-touch-icon" sizes="180x180" href="/service_mobile/static/src/img/icon180.png" />
+                <link rel="apple-touch-icon" sizes="152x152" href="/service_mobile/static/src/img/icon152.png" />
+                <link rel="apple-touch-icon" sizes="167x167" href="/service_mobile/static/src/img/icon167.png" />
+            </xpath>
+        </template>
+
         <template id="index">
             <t t-call="website.layout">
                 <div class="service_mobile container">
@@ -51,9 +64,6 @@
                                             <a t-att-href="'/service/%s/order/task' % order.id" class="btn btn-success btn-xs">Time(Tasks)</a>
                                         </div>
                                         <div class="col px-2">
-                                            <a style="cursor: pointer;" t-attf-class="prio_toggle" t-attf-data-href="/service/#{slug(order)}/order/flag">
-                                                Toggle prio
-                                            </a>
                                             <a t-attf-style="cursor: pointer;#{order.state == 'sent' and 'color:#999;' or ''}" t-attf-class="flag fa fa-flag #{not order.state == 'sent' or ''}" t-attf-data-href="/service/#{slug(order)}/order/flag">
                                                 <t t-if="order.state == 'sent'">
                                                     Flagged
@@ -79,6 +89,8 @@
         </template>
         <template id="view_order">
             <t t-call="website.layout">
+                <img t-att-src="'/service/%s/image' %order.id"/>
+
                 <form id="info_form" t-att-action="'/service/%s/order' % order.id" method="post"
                     class="form-horizontal mt32" enctype="multipart/form-data">
                     <input type="hidden" name="id" t-att-value="order.id" />
@@ -131,6 +143,11 @@
                         <div class="col-md-7 col-sm-8">
                             <p>Prio:</p><input type="checkbox" class="form-control" name="prio" t-att-checked="order.prio" />
                         </div>
+                    </div>
+                    <div t-att-class="'form-group %s' %validation.get('ufile', '')">
+                        <label class="col-md-3 col-sm-4 control-label" for="note">Upload photo</label>
+                        <input type="file" name="ufile" placeholder="File to upload (image)" required="True" accept="image/*" capture="camera" />
+                        <p class="help-block">File to upload</p>
                     </div>
                     <div class="col-md-12">
                         <div class="pull-right mb16">

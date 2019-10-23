@@ -23,6 +23,7 @@
 from odoo import http
 import werkzeug
 import datetime
+import base64
 
 import logging
 # ~ _logger = logging.getLogger(__name__)
@@ -50,7 +51,55 @@ class ServiceMobile(http.Controller):
                     task.qty_delivered = task.product_uom_qty
                 else:
                     task.qty_delivered = 0
-            logger.exception('kw %s' % order.note)            
+            logger.exception('kw %s' % order.note)
+            if post.get('ufile'):
+                
+                # type(ufile) kan användas för att se typen på ufile
+                # werkzeug.datastructures.FileStorage
+                # https://werkzeug.palletsprojects.com/en/0.15.x/datastructures/
+                
+                # lista med mimetypes
+                # https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types
+                
+                # hämta resultatet från formuläret
+                ufile = post.get('ufile')
+                
+                # läs ut bildfilen.
+                file_datas_bytes = ufile.read() 
+                
+                # file_datas_bytes är i "bytes"-format: 
+                #    \xff\xd8\xff\xe1 \xfcExif\x00\x00II*\x00\x08\x00\x00\x00\x12\x00\x00\ ...
+                
+                # konvertera formatet till "binary" 
+                # base64 är ett bibliotek med funktioner som hjälper oss med detta
+                file_datas_binary = base64.b64encode(file_datas_bytes)
+                                
+                # file_datas_binary kommer se ut ungefär:
+                #    /9j/4SD8RXhpZgAASUkqAAgAAAASAAABAwABAAAAwBwAAAEBAwABAAAAMBMAAAIBAwADA ...
+
+                
+                # logga lite...
+                logger.warn("Bytes data: %s" % file_datas_bytes[:100])  # skriv ut första 100 tecknen
+                logger.warn("Binary data: %s" % file_datas_binary[:100])
+                
+                
+                
+                # spara datum och klockslag NU
+                current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+                # skapa upp en dict med våra parametrar
+                attachment_params = {
+                    'name': '%s %s' % (ufile.name, current_datetime),   # beskrivande namn på filen. ufile.name är fältnamnet från formuläret
+                    'type': 'binary',                                   # odoo vill ha datan i binärt format
+                    'datas': file_datas_binary,                         # datan som utgör filen
+                    'datas_fname': ufile.filename,                      # "tekniskt" filnamn
+                    'res_model': 'sale.order',                     # modell att koppla attachment till
+                    'res_id': order.id,                               # id på objekt att koppla attachment till
+                    'mimetype': ufile.mimetype,                         # Matcha filens mimetype
+                }
+                
+                # skapa vår attachment med hjälp av dicten
+                attachment_new = http.request.env['ir.attachment'].create(attachment_params)            
 
             return self.index_order()
         else:
@@ -152,6 +201,13 @@ class ServiceMobile(http.Controller):
             template.send_mail(invoice.id, force_send=True)
             order.state = "invoiced"
 
+    @http.route('/service/<model("sale.order"):order>/image', auth='user', website=True, methods=['GET','POST'])
+    def view_image(self, order, **post):
+        attach_ids = http.request.env['ir.attachment'].search([('res_model', '=', 'sale.order'),('res_id','=', order.id)])
+        url = attach_ids[0].website_url
+        # return base64.b64decode(attach_ids[0])
+        # return website.image_url(attach_ids[0].website_url)
+        return url
 #--------------------------------------------
 
     @http.route('/service/all/project/', website=True, auth='user')
