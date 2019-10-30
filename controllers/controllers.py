@@ -21,12 +21,12 @@
 
 
 from odoo import http
+from odoo.http import request, Response
 import werkzeug
 import datetime
 import base64
 
 import logging
-# ~ _logger = logging.getLogger(__name__)
 logger = logging.getLogger(__name__)
 
 
@@ -106,10 +106,11 @@ class ServiceMobile(http.Controller):
             return http.request.render('service_mobile.view_order', {
                               'root': '/service/%s/order/' % order.id,
                               'partner_ids': http.request.env['res.partner'].search([('customer','=',True)]),
+                              'attach_ids': http.request.env['ir.attachment'].search([('res_model', '=', 'sale.order'),('res_id','=', order.id)]),
                               'order': order,
                               'task_ids': order.order_line,
                               'help': {'name':'This is helpstring for name'},
-                               'validation': {'name':'Warning'},
+                              'validation': {'name':'Warning'},
                               'input_attrs': {},
                           })
 
@@ -201,13 +202,11 @@ class ServiceMobile(http.Controller):
             template.send_mail(invoice.id, force_send=True)
             order.state = "invoiced"
 
-    @http.route('/service/<model("sale.order"):order>/image', auth='user', website=True, methods=['GET','POST'])
-    def view_image(self, order, **post):
-        attach_ids = http.request.env['ir.attachment'].search([('res_model', '=', 'sale.order'),('res_id','=', order.id)])
-        url = attach_ids[0].website_url
-        # return base64.b64decode(attach_ids[0])
-        # return website.image_url(attach_ids[0].website_url)
-        return url
+    # @http.route('/service/<model("sale.order"):order>/image', auth='user', website=True, methods=['GET','POST'])
+    # def view_image(self, order, **post):
+    #     attach_ids = http.request.env['ir.attachment'].search([('res_model', '=', 'sale.order'),('res_id','=', order.id)])
+    #     url = attach_ids[0].website_url
+    #     return url
 #--------------------------------------------
 
     @http.route('/service/all/project/', website=True, auth='user')
@@ -238,5 +237,43 @@ class ServiceMobile(http.Controller):
         project.invoice() # ?????????????
         self.index_project()
 
-    # @http.route('/service/<model("sale.order"):order>/order/flag', auth='user', website=True, type='json')
-    # def post_flag(self, order, **kwargs):
+    @http.route('/partner/<int:partner_id>', website=True)
+    def vcard_partner_view(self, partner_id):
+        
+        return http.request.render('service_mobile.partner_vcard_view', {
+            'root': '/partner/%s' % partner_id,
+            'partner': http.request.env['res.partner'].search([('id','=',partner_id)]),
+        })
+    
+    # @http.route(['/partner/<int:partner_id>/vcard.vcl'], ... )
+    # def vcard_partner(self, ...):
+
+    #     # Kommentarer:
+    #     # ````````````
+    #     # Tre stycken """ definerar en sträng som kan sträcka sig över flera rader i python.
+    #     #
+    #     # Funktionen format() som används nedan kommer söka på det innan likamedtecknet i 
+    #     # strängen innan och byta ut t.ex. {name} mot det som kommer efter likamedtecknet. 
+    #     # Nya variabler kan defineras fritt med kommatecken.
+    #     #
+    #     # Lättast är att ni kopierar in denna kod i ert befintliga projekt för kim och 
+    #     # jobbar därifrån.
+
+    #     ...
+
+    #     result = """BEGIN:VCARD
+    #         VERSION:3.0
+    #         FN;CHARSET=UTF-8:{name}
+    #         N;CHARSET=UTF-8:{family_name};{given_name};;;
+    #         EMAIL;CHARSET=UTF-8;type=WORK,INTERNET:Kim.Kimsson@kimsvvs.se
+    #         PHOTO;TYPE=undefined:https://kimsvvs.se/bilder/foto.jpeg
+    #         TEL;TYPE=WORK,VOICE:+460123456789
+    #         TITLE;CHARSET=UTF-8:Fixare
+    #         ORG;CHARSET=UTF-8:Kims VVS 
+    #         URL;CHARSET=UTF-8:https://kimsvvs.se/partner/1/
+    #         REV:2019-09-13T09:26:53.011Z
+    #         END:VCARD""".format(name=???, given_name=???, family_name=???, etc="...", ...)
+
+    #     return Response(result, mimetype='text/vcard')
+
+

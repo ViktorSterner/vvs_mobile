@@ -33,7 +33,7 @@
                                     <th>Status</th>
                                     <th>Prio</th>
                                     <th>Invoice status</th>
-                                    <th class="text-center">Action</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tr t-foreach="order_ids" t-as="order">
@@ -52,32 +52,15 @@
                                 <td>
                                     <t t-esc="order.invoice_status"/>
                                 </td>
-                                <td class="text-center">
+                                <td>
                                     <div class="row">
-                                        <div class="col px-2">
-                                            <a t-att-href="'/service/%s/order/send' % order.id" class='btn btn-info btn-xs'>Send</a>
-                                        </div>
-                                        <div class="col px-2">
-                                            <a t-att-href="'/service/%s/order/delete' % order.id" class="btn btn-danger btn-xs">Del</a>
-                                        </div>
-                                        <div class="col px-2">
-                                            <a t-att-href="'/service/%s/order/task' % order.id" class="btn btn-success btn-xs">Time(Tasks)</a>
-                                        </div>
-                                        <div class="col px-2">
-                                            <a t-attf-style="cursor: pointer;#{order.state == 'sent' and 'color:#999;' or ''}" t-attf-class="flag fa fa-flag #{not order.state == 'sent' or ''}" t-attf-data-href="/service/#{slug(order)}/order/flag">
-                                                <t t-if="order.state == 'sent'">
-                                                    Flagged
-                                                </t>
-                                                <t t-if="order.state != 'sent'">
-                                                    Flag
-                                                </t>
-                                            </a>
-                                        </div>
-                                        <div class="col">
-                                            <a style="cursor: pointer;" t-attf-class="send_invoice" t-attf-data-href="/service/#{slug(order)}/order/invoice">
-                                                Send invoice
-                                            </a>
-                                        </div>
+                                        <a t-att-href="'/service/%s/order/send' % order.id" t-attf-class="px-1 fa fa-paper-plane"></a>
+                                        <a t-att-href="'/service/%s/order/delete' % order.id" t-attf-class="px-1 fa fa-trash"></a>
+                                        <a t-att-href="'/service/%s/order/task' % order.id" t-attf-class="px-1 fa fa-clock-o"></a>
+                                        <a t-attf-style="cursor: pointer;#{order.state == 'sent' and 'color:#999;' or ''}" t-attf-class="px-1 flag fa fa-flag #{not order.state == 'sent' or ''}" t-attf-data-href="/service/#{slug(order)}/order/flag">
+                                        </a>
+                                        <a style="cursor: pointer;" t-attf-class="send_invoice px-1 fa fa-share" t-attf-data-href="/service/#{slug(order)}/order/invoice">
+                                        </a>
                                     </div>
                                 </td>
 
@@ -89,7 +72,9 @@
         </template>
         <template id="view_order">
             <t t-call="website.layout">
-                <img t-att-src="'/service/%s/image' %order.id"/>
+                <t t-foreach="attach_ids" t-as="attach">
+                    <img t-att-src="attach.website_url"/>
+                </t>
 
                 <form id="info_form" t-att-action="'/service/%s/order' % order.id" method="post"
                     class="form-horizontal mt32" enctype="multipart/form-data">
@@ -286,6 +271,15 @@
                     </tbody>
                 </table>
             </t>
+        </template>
+        <template id="partner_vcard_view">
+            <div class="container">
+                <img t-att-src="'../website/image/res.partner/%s/image' % partner.id" />
+                <t t-esc="partner.name"/>
+                <t t-esc="partner.title.name"/>
+                <t t-esc="partner.email"/>
+                <t t-esc="partner.phone"/>
+            </div>
         </template>
     </data>
 </odoo>
