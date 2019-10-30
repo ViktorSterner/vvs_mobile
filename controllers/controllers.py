@@ -245,35 +245,33 @@ class ServiceMobile(http.Controller):
             'partner': http.request.env['res.partner'].search([('id','=',partner_id)]),
         })
     
-    # @http.route(['/partner/<int:partner_id>/vcard.vcl'], ... )
-    # def vcard_partner(self, ...):
+    @http.route('/partner/<int:partner_id>/send')
+    def vcard_partner(self, partner_id):
 
-    #     # Kommentarer:
-    #     # ````````````
-    #     # Tre stycken """ definerar en sträng som kan sträcka sig över flera rader i python.
-    #     #
-    #     # Funktionen format() som används nedan kommer söka på det innan likamedtecknet i 
-    #     # strängen innan och byta ut t.ex. {name} mot det som kommer efter likamedtecknet. 
-    #     # Nya variabler kan defineras fritt med kommatecken.
-    #     #
-    #     # Lättast är att ni kopierar in denna kod i ert befintliga projekt för kim och 
-    #     # jobbar därifrån.
+        # Kommentarer:
+        # ````````````
+        # Tre stycken """ definerar en sträng som kan sträcka sig över flera rader i python.
+        #
+        # Funktionen format() som används nedan kommer söka på det innan likamedtecknet i 
+        # strängen innan och byta ut t.ex. {name} mot det som kommer efter likamedtecknet. 
+        # Nya variabler kan defineras fritt med kommatecken.
+        #
+        # Lättast är att ni kopierar in denna kod i ert befintliga projekt för kim och 
+        # jobbar därifrån.
 
-    #     ...
+        partner = http.request.env['res.partner'].search([('id','=',partner_id)])
 
-    #     result = """BEGIN:VCARD
-    #         VERSION:3.0
-    #         FN;CHARSET=UTF-8:{name}
-    #         N;CHARSET=UTF-8:{family_name};{given_name};;;
-    #         EMAIL;CHARSET=UTF-8;type=WORK,INTERNET:Kim.Kimsson@kimsvvs.se
-    #         PHOTO;TYPE=undefined:https://kimsvvs.se/bilder/foto.jpeg
-    #         TEL;TYPE=WORK,VOICE:+460123456789
-    #         TITLE;CHARSET=UTF-8:Fixare
-    #         ORG;CHARSET=UTF-8:Kims VVS 
-    #         URL;CHARSET=UTF-8:https://kimsvvs.se/partner/1/
-    #         REV:2019-09-13T09:26:53.011Z
-    #         END:VCARD""".format(name=???, given_name=???, family_name=???, etc="...", ...)
 
-    #     return Response(result, mimetype='text/vcard')
+        result = """BEGIN:VCARD
+            VERSION:3.0
+            FN;CHARSET=UTF-8:{name}
+            EMAIL;CHARSET=UTF-8;type=WORK,INTERNET:{email}
+            TEL;TYPE=WORK,VOICE:{phone}
+            TITLE;CHARSET=UTF-8:{title}
+            ORG;CHARSET=UTF-8:{org}
+            END:VCARD""".format(name=partner.name, email=partner.email,
+            phone=partner.phone,title=partner.title.name,org=partner.company_name)
+
+        return Response(result, mimetype='text/vcard')
 
 

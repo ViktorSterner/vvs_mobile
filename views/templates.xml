@@ -273,12 +273,40 @@
             </t>
         </template>
         <template id="partner_vcard_view">
-            <div class="container">
-                <img t-att-src="'../website/image/res.partner/%s/image' % partner.id" />
-                <t t-esc="partner.name"/>
-                <t t-esc="partner.title.name"/>
-                <t t-esc="partner.email"/>
-                <t t-esc="partner.phone"/>
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"/>
+                <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous"/>
+            </xpath>
+            <div class="row d-flex justify-content-center text-center">
+                <div class="col-12">
+                    <img class="rounded-circle" t-att-src="'../website/image/res.partner/%s/image' % partner.id" />
+                </div>
+                <div class="col-12">
+                    <t t-esc="partner.name"/>
+                </div>
+                <div class="col-12 text-secondary">
+                    <t t-esc="partner.title.name"/>
+                </div>
+                <div class="col-6 text-left" style="background: orangered;">
+                    <i class="d-block fa fa-phone"></i>
+                    <span class="text-secondary">Ring</span>
+                </div>
+                <div class="col-6 text-right" style="background: orangered;">
+                    <i class="d-block fa fa-envelope"></i>
+                    <span class="text-secondary">Maila</span>
+                </div>
+                <div class="col-12">
+                <button class="mr-1" style="background: orangered;">
+                    <i class="d-block fa fa-share-alt"></i>
+                    Dela
+                </button>
+                <button class="ml-1" style="background: orangered;">
+                    <a t-att-href="'/partner/%s/send' % partner.id">
+                        <i class="d-block fa fa-arrow-circle-down"></i>
+                        Lägg till kontakt
+                    </a>
+                </button>
+                </div>
             </div>
         </template>
     </data>
